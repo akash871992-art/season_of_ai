@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>[hidden]{display:none!important}body{margin:0}img{max-width:100%}</style>
+<title>Seasons of AI</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: a vertical timeline read as climate history; AI "summers" run warm, "winters" run cold, a heat strip on top maps the whole 80 years. */
+:root{
+  --bg:#F2F5F4; --surface:#FFFFFF; --ink:#14201D; --muted:#566663; --line:#D2DBD8;
+  --warm:#B8640F; --cold:#2F6E9F; --hot:#BE3A20; --neutral:#7C8A86;
+  --frost:#E3ECF3; --warm-tint:#FBF1E6; --hot-tint:#FBEAE5;
+  --display:"Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
+  --body:"IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F1514; --surface:#172020; --ink:#E4ECE9; --muted:#93A39F; --line:#2A3634;
+  --warm:#E99B48; --cold:#7DB2DC; --hot:#F2795B; --neutral:#8E9C98;
+  --frost:#15222C; --warm-tint:#231A10; --hot-tint:#2A1611; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F1514; --surface:#172020; --ink:#E4ECE9; --muted:#93A39F; --line:#2A3634;
+  --warm:#E99B48; --cold:#7DB2DC; --hot:#F2795B; --neutral:#8E9C98;
+  --frost:#15222C; --warm-tint:#231A10; --hot-tint:#2A1611; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:0 48px}
+.wrap{max-width:980px;margin:0 auto}
+a{color:inherit;text-underline-offset:3px}
+a:focus-visible,button:focus-visible{outline:2px solid var(--cold);outline-offset:3px;border-radius:4px}
+
+header{padding-block:48px 24px;display:grid;gap:14px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(44px,8vw,84px);line-height:.95;margin:0;letter-spacing:-.02em;text-wrap:balance}
+h1 .w{color:var(--warm)} h1 .c{color:var(--cold)}
+.lede{max-width:62ch;font-size:18px;color:var(--muted);margin:0}
+.lede strong{color:var(--ink);font-weight:600}
+
+/* Heat strip */
+.strip-box{margin-top:12px}
+.strip{display:flex;height:42px;border-radius:6px;overflow:hidden;border:1px solid var(--line)}
+.seg{border:0;padding:0;cursor:pointer;position:relative;transition:filter .15s}
+.seg:hover{filter:brightness(1.12)}
+.seg.f{background:var(--warm);opacity:.75}.seg.w1,.seg.w2{background:var(--cold);
+  background-image:repeating-linear-gradient(135deg,transparent 0 5px,rgba(255,255,255,.28) 5px 7px)}
+.seg.b{background:var(--warm)}.seg.q{background:var(--neutral)}.seg.d{background:var(--hot);opacity:.85}.seg.g{background:var(--hot)}
+.ticks{position:relative;height:20px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.ticks span{position:absolute;transform:translateX(-50%);top:4px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:var(--muted);margin-top:6px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+
+/* Filters */
+.filters{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:12px;margin-top:24px;
+  display:flex;flex-wrap:wrap;gap:8px;border-bottom:1px solid var(--line)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.chip{font:500 14px var(--body);border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:7px 14px;border-radius:999px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+/* Timeline */
+.era{margin-top:40px;display:grid;gap:4px}
+.era h2{font-family:var(--display);font-weight:700;font-size:clamp(26px,4vw,36px);margin:0;line-height:1.1;text-wrap:balance}
+.era .span{font-family:var(--mono);font-size:13px;color:var(--muted)}
+.era p{margin:4px 0 0;max-width:68ch;color:var(--muted)}
+.era[data-tone="warm"] h2{color:var(--warm)} .era[data-tone="cold"] h2{color:var(--cold)} .era[data-tone="hot"] h2{color:var(--hot)}
+
+.events{list-style:none;margin:18px 0 0;padding:0;position:relative}
+.events::before{content:"";position:absolute;left:96px;top:6px;bottom:6px;width:2px;background:var(--line)}
+.ev{display:grid;grid-template-columns:80px 1fr;gap:32px;padding-block:12px;position:relative}
+.ev::before{content:"";position:absolute;left:91px;top:24px;width:12px;height:12px;border-radius:50%;background:var(--bg);border:3px solid var(--tone)}
+.yr{font-family:var(--mono);font-weight:600;font-size:20px;text-align:right;padding-top:14px;color:var(--tone);font-variant-numeric:tabular-nums;white-space:nowrap}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 20px;min-width:0}
+.ev.winter .card{background:var(--frost);border-color:color-mix(in srgb,var(--cold) 35%,var(--line))}
+.card h3{font-family:var(--display);font-weight:700;font-size:21px;margin:0 0 2px;line-height:1.2;text-wrap:balance}
+.who{font-size:13px;color:var(--muted);margin:0 0 8px;font-family:var(--mono)}
+.card p{margin:0}
+.why{margin-top:10px !important;font-size:14.5px;padding-top:10px;border-top:1px dashed var(--line)}
+.why b{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--tone);margin-right:6px}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.tag{font-family:var(--mono);font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+
+/* Concepts + players */
+section.block{margin-top:56px}
+section.block h2{font-family:var(--display);font-weight:700;font-size:clamp(26px,4vw,34px);margin:0 0 6px}
+section.block > p{color:var(--muted);margin:0 0 18px;max-width:68ch}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;min-width:0}
+.tile h3{font-family:var(--display);font-size:18px;margin:0 0 2px}
+.tile .k{font-family:var(--mono);font-size:12px;color:var(--hot);margin:0 0 6px}
+.tile p{margin:0;font-size:14.5px;color:var(--muted)}
+.pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.pair .tile p{color:var(--ink)}
+.pair .tile .k{color:var(--cold)}
+
+footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--line);font-size:14px;color:var(--muted);display:grid;gap:12px}
+footer ol{margin:0;padding-left:20px;display:grid;gap:4px}
+.disclose{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 16px;color:var(--ink)}
+
+@media (max-width:620px){
+  .events::before{left:7px}
+  .ev{grid-template-columns:1fr;gap:6px;padding-left:28px}
+  .ev::before{left:2px;top:6px}
+  .yr{text-align:left;padding-top:0;font-size:17px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+html{scroll-behavior:smooth}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">AI history timeline · 1943 to today</div>
+  <h1>Seasons <span class="w">of</span> <span class="c">AI</span></h1>
+  <p class="lede">Artificial intelligence did not rise in a straight line. It moved through <strong>summers</strong> of hype and funding and <strong>winters</strong> when money and belief dried up. Then, after 2012, <strong>GPUs, big data and cloud computing</strong> finally caught up with ideas that were decades old. Tap a band to jump to that era.</p>
+
+  <div class="strip-box" aria-label="Heat strip of AI eras from 1943 to 2026">
+    <div class="strip" id="strip"></div>
+    <div class="ticks" id="ticks"></div>
+    <div class="legend">
+      <span><i style="background:var(--warm)"></i>AI summer (hype + funding)</span>
+      <span><i style="background:var(--cold)"></i>AI winter (funding collapse)</span>
+      <span><i style="background:var(--neutral)"></i>Quiet progress</span>
+      <span><i style="background:var(--hot)"></i>Deep learning + generative boom</span>
+    </div>
+  </div>
+</header>
+
+<nav class="filters" aria-label="Filter events">
+  <button class="chip" id="f-all" data-f="all" aria-pressed="true">All events</button>
+  <button class="chip" id="f-winter" data-f="winter" aria-pressed="false">AI winters</button>
+  <button class="chip" id="f-compute" data-f="compute" aria-pressed="false">Hardware &amp; cloud</button>
+  <button class="chip" id="f-model" data-f="model" aria-pressed="false">Landmark models</button>
+  <button class="chip" id="f-people" data-f="people" aria-pressed="false">Key figures</button>
+</nav>
+
+<main id="timeline"></main>
+
+<section class="block">
+  <h2>Two ideas that frame the story</h2>
+  <p>The IEEE overview splits AI history into ages. These two distinctions explain most of the swings above.</p>
+  <div class="pair">
+    <div class="tile"><p class="k">SYMBOLIC → CONNECTIONIST</p><h3>Rules vs. learning</h3><p>Early AI (1956–1990s) hand-coded logic and rules: expert systems, Deep Blue. Modern AI learns patterns from data with neural networks. The shift happened when data and compute became cheap enough for learning to beat hand-written rules.</p></div>
+    <div class="tile"><p class="k">NARROW AI vs. AGI</p><h3>Specialist vs. generalist</h3><p>Every system here is narrow AI: excellent at defined tasks like chess, image labels or text. Artificial General Intelligence would match humans across any intellectual task. It remains a goal and a debate, not an achievement.</p></div>
+  </div>
+</section>
+
+<section class="block">
+  <h2>Leading players today</h2>
+  <p>The current race is fought on three fronts: models, chips and cloud.</p>
+  <div class="grid">
+    <div class="tile"><p class="k">MODELS</p><h3>OpenAI</h3><p>GPT series and ChatGPT, which brought generative AI to the public in 2022. Backed by Microsoft.</p></div>
+    <div class="tile"><p class="k">MODELS + SCIENCE</p><h3>Google DeepMind</h3><p>AlphaGo, AlphaFold and the Gemini models. Google researchers also invented the Transformer.</p></div>
+    <div class="tile"><p class="k">MODELS</p><h3>Anthropic</h3><p>Claude models, with a focus on AI safety research. Founded in 2021 by former OpenAI researchers.</p></div>
+    <div class="tile"><p class="k">OPEN WEIGHTS</p><h3>Meta</h3><p>Llama models released openly, so anyone can download and build on them.</p></div>
+    <div class="tile"><p class="k">CHIPS</p><h3>NVIDIA</h3><p>GPUs and CUDA software power most AI training. This made it one of the world's most valuable companies.</p></div>
+    <div class="tile"><p class="k">CLOUD</p><h3>Microsoft, Amazon, Google</h3><p>Azure, AWS and Google Cloud rent out the massive compute that model training needs.</p></div>
+    <div class="tile"><p class="k">OPEN WEIGHTS</p><h3>DeepSeek</h3><p>Chinese lab whose low-cost R1 reasoning model in 2025 showed frontier AI was not limited to US giants.</p></div>
+    <div class="tile"><p class="k">TREND</p><h3>Compute curve</h3><p>Training compute for leading models has doubled roughly every six months since 2010, versus about every 20 months before (Our World in Data).</p></div>
+  </div>
+</section>
+
+<footer>
+  <div class="disclose"><strong>AI use disclosure:</strong> I used Claude (Anthropic) to help research milestones and design this page. I verified the events against the sources below.</div>
+  <div><strong>Sources</strong>
+  <ol>
+    <li>Putchuon. (2024, May 30). <em>The entire history of artificial intelligence (Last 100 years)</em> [Video]. YouTube. <a href="https://www.youtube.com/watch?v=mSd9nmPM7Vg" target="_blank" rel="noopener">youtube.com/watch?v=mSd9nmPM7Vg</a></li>
+    <li>IEEE Computer Society. (n.d.). <em>The evolution of AI: From foundations to future prospects.</em> <a href="https://www.computer.org/publications/tech-news/research/evolution-of-ai" target="_blank" rel="noopener">computer.org</a></li>
+    <li>Our World in Data. (n.d.). <em>A brief history of artificial intelligence.</em> <a href="https://ourworldindata.org/brief-history-of-ai" target="_blank" rel="noopener">ourworldindata.org/brief-history-of-ai</a></li>
+    <li>Vaswani, A., et al. (2017). <em>Attention is all you need.</em> <a href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener">arxiv.org/abs/1706.03762</a></li>
+    <li>The Nobel Prize. (2024). <em>The Nobel Prize in Physics 2024.</em> <a href="https://www.nobelprize.org/prizes/physics/2024/summary/" target="_blank" rel="noopener">nobelprize.org</a></li>
+  </ol></div>
+</footer>
+</div>
+
+<script>
+const ERAS=[
+ {id:"f",tone:"warm",start:1943,end:1974,name:"The birth of AI",span:"1943 – 1973",note:"Symbolic AI is born. Researchers believe human-level intelligence is a generation away, and governments fund them generously."},
+ {id:"w1",tone:"cold",start:1974,end:1980,name:"The first AI winter",span:"1974 – 1980",note:"Promises outran results. Computers were too slow and memory too small, and funders pulled back."},
+ {id:"b",tone:"warm",start:1980,end:1987,name:"The expert systems boom",span:"1980 – 1987",note:"Businesses buy rule-based 'expert systems' and neural networks quietly return."},
+ {id:"w2",tone:"cold",start:1987,end:1993,name:"The second AI winter",span:"1987 – 1993",note:"The commercial bubble bursts and 'AI' becomes a word researchers avoid."},
+ {id:"q",tone:"neutral",start:1993,end:2012,name:"Quiet progress",span:"1993 – 2011",note:"Statistics, the internet and cheap hardware build the three ingredients deep learning will need: data, compute and better algorithms."},
+ {id:"d",tone:"hot",start:2012,end:2022,name:"The deep learning revolution",span:"2012 – 2021",note:"GPUs and cloud computing make huge neural networks practical. AI beats humans at vision benchmarks and Go."},
+ {id:"g",tone:"hot",start:2022,end:2026,name:"The generative AI era",span:"2022 – today",note:"Large language models reach the public, and the race between OpenAI, Google, Anthropic, Meta and others accelerates."}
+];
+const EV=[
+ {e:"f",y:"1943",t:"The first artificial neuron",who:"Warren McCulloch & Walter Pitts",d:"A neurophysiologist and a logician model the brain's neurons as simple on/off switches and show that networks of them can compute logic.",why:"This is the seed of every neural network, including today's LLMs.",tags:["people"]},
+ {e:"f",y:"1950",t:"The Turing Test",who:"Alan Turing",d:"Fresh from breaking German codes at Bletchley Park in WWII, Turing publishes \"Computing Machinery and Intelligence\" and asks: can machines think? He proposes the imitation game.",why:"It gave AI its first benchmark and its central philosophical question.",tags:["people"]},
+ {e:"f",y:"1956",t:"Dartmouth Workshop names the field",who:"John McCarthy, Marvin Minsky, Claude Shannon, Nathaniel Rochester",d:"A summer workshop at Dartmouth College coins the term \"artificial intelligence.\" Newell and Simon's Logic Theorist, a program that proves math theorems, is the star.",why:"This was the official birth of AI as an academic field.",tags:["people"]},
+ {e:"f",y:"1958",t:"The Perceptron",who:"Frank Rosenblatt, Cornell",d:"The Mark I Perceptron is a machine that learns to classify simple images by adjusting its own weights. Newspapers predict machines that will walk, talk and be conscious.",why:"It was the first trainable neural network, and the first AI hype cycle.",tags:["model","people"]},
+ {e:"f",y:"1959",t:"\"Machine learning\" is coined",who:"Arthur Samuel, IBM",d:"Samuel's checkers program improves by playing thousands of games against itself, eventually beating its creator.",why:"It showed computers could learn rather than only follow instructions.",tags:["people"]},
+ {e:"f",y:"1966",t:"ELIZA, the first chatbot",who:"Joseph Weizenbaum, MIT",d:"ELIZA imitates a therapist using simple pattern matching. Users confide in it as if it understood them.",why:"It produced the 'ELIZA effect': people attribute understanding to fluent machines, a lesson that applies to ChatGPT today.",tags:["model","people"]},
+ {e:"f",y:"1969",t:"Perceptrons exposes the limits",who:"Marvin Minsky & Seymour Papert",d:"Their book proves single-layer perceptrons cannot learn simple functions like XOR.",why:"Neural network funding dried up for over a decade.",tags:["people"]},
+ {e:"w1",y:"1973",t:"The Lighthill Report",who:"Sir James Lighthill, UK Science Research Council",d:"A UK government review concludes AI has failed to meet its \"grandiose objectives\" because real-world problems explode combinatorially. Britain cuts university AI funding, and DARPA narrows US funding to short-term military projects.",why:"This triggered the first AI winter.",tags:["winter","people"]},
+ {e:"w1",y:"1974–80",t:"FIRST AI WINTER",who:"Cause: overpromising + weak hardware",d:"Machine translation, speech and robotics projects missed their goals. Computers had kilobytes of memory, far too little for real-world knowledge.",why:"Labs shrank, grants vanished and researchers rebranded their work to avoid the word 'AI.'",tags:["winter"],winter:true},
+ {e:"b",y:"1980",t:"Expert systems go commercial",who:"John McDermott (CMU) & Digital Equipment Corp.",d:"XCON, a rule-based system that configures computer orders, saves DEC millions per year. In 1982 Japan launches its Fifth Generation project, and the US and UK respond with new funding.",why:"AI became an industry for the first time.",tags:["model","people"]},
+ {e:"b",y:"1986",t:"Backpropagation popularized",who:"David Rumelhart, Geoffrey Hinton, Ronald Williams",d:"A Nature paper shows how to train multi-layer neural networks by passing errors backward through the layers.",why:"It answered Minsky & Papert's critique and remains the core training method of deep learning.",tags:["people"]},
+ {e:"w2",y:"1987–93",t:"SECOND AI WINTER",who:"Cause: the expert-systems bubble bursts",d:"Cheaper desktop PCs from Apple and IBM wipe out the market for specialized Lisp machines in 1987. Expert systems proved brittle and expensive to update, and Japan's Fifth Generation project missed its goals.",why:"Hundreds of AI companies shut down, and DARPA cut AI funding again.",tags:["winter"],winter:true},
+ {e:"w2",y:"1989",t:"Neural networks read handwriting",who:"Yann LeCun, Bell Labs",d:"Even during the winter, LeCun's convolutional neural network learns to read handwritten ZIP codes. Banks later use the approach to read checks.",why:"CNNs became the foundation of modern computer vision.",tags:["model","people"]},
+ {e:"q",y:"1997",t:"Deep Blue defeats Kasparov",who:"IBM",d:"IBM's chess computer beats the reigning world champion. It used brute-force search and hand-tuned rules, not learning. The same year, Hochreiter and Schmidhuber publish LSTM, a network with memory for sequences.",why:"Deep Blue marked the peak of symbolic AI, while LSTM pointed to the learning-based future.",tags:["model","people"]},
+ {e:"q",y:"2006",t:"Deep learning and the cloud arrive",who:"Geoffrey Hinton · Amazon Web Services",d:"Hinton shows deep networks can be trained layer by layer and helps rebrand neural nets as 'deep learning.' The same year Amazon launches AWS, renting computing power by the hour.",why:"It brought the algorithms and the on-demand compute together.",tags:["compute","people"]},
+ {e:"q",y:"2007",t:"CUDA turns GPUs into AI engines",who:"NVIDIA, Jensen Huang",d:"CUDA lets programmers use graphics cards, built for video games, for general math across thousands of parallel cores.",why:"Neural network training is mostly parallel matrix math, a perfect fit for GPUs.",tags:["compute","people"]},
+ {e:"q",y:"2009",t:"ImageNet",who:"Fei-Fei Li, Princeton & Stanford",d:"A dataset that grows to more than 14 million hand-labeled images, with a yearly recognition contest from 2010.",why:"It supplied the big data that deep learning needed to prove itself.",tags:["people"]},
+ {e:"q",y:"2011",t:"AI goes mainstream",who:"IBM Watson · Apple Siri",d:"Watson beats champions Ken Jennings and Brad Rutter on Jeopardy!, and Apple ships Siri on the iPhone 4S.",why:"AI moved from labs into living rooms and pockets.",tags:["model"]},
+ {e:"d",y:"2012",t:"AlexNet: the big bang of deep learning",who:"Alex Krizhevsky, Ilya Sutskever, Geoffrey Hinton",d:"Trained on two NVIDIA gaming GPUs, AlexNet wins the ImageNet contest with a top-5 error of about 15%, against 26% for the runner-up.",why:"Hardware finally caught up with 1980s theory, and industry rushed into deep learning.",tags:["model","compute","people"]},
+ {e:"d",y:"2014",t:"GANs, and Google buys DeepMind",who:"Ian Goodfellow · Demis Hassabis",d:"Generative Adversarial Networks pit a generator against a discriminator to create realistic images. Google acquires London's DeepMind.",why:"GANs gave AI the ability to create, and big tech's talent war began.",tags:["model","people"]},
+ {e:"d",y:"2015",t:"OpenAI is founded",who:"Sam Altman, Elon Musk, Ilya Sutskever, Greg Brockman and others",d:"OpenAI launches as a nonprofit research lab with $1 billion in pledged funding.",why:"It later produced the GPT models and ChatGPT.",tags:["people"]},
+ {e:"d",y:"2016",t:"AlphaGo beats Lee Sedol",who:"DeepMind: Demis Hassabis, David Silver",d:"AlphaGo, which combines deep learning with reinforcement learning, defeats one of the world's best Go players 4–1. Its famous 'Move 37' surprised human experts.",why:"Go has more board positions than atoms in the universe, so brute force alone could never win.",tags:["model","people"]},
+ {e:"d",y:"2017",t:"The Transformer",who:"Vaswani et al., Google",d:"\"Attention Is All You Need\" introduces an architecture that processes whole sequences in parallel using attention.",why:"The 'T' in GPT. Nearly every modern LLM, including GPT, Gemini, Claude and Llama, is built on it.",tags:["model","people"]},
+ {e:"d",y:"2018",t:"Pretrained language models",who:"Google BERT · OpenAI GPT-1 · Turing Award",d:"Models pretrained on huge text collections can be fine-tuned for many tasks. Hinton, LeCun and Bengio win the 2018 Turing Award as the 'godfathers of deep learning.'",why:"The recipe of pretraining at scale and then adapting became the industry standard.",tags:["model","people"]},
+ {e:"d",y:"2020",t:"GPT-3 and AlphaFold 2",who:"OpenAI · DeepMind",d:"GPT-3, with 175 billion parameters, writes fluent text from a few examples. AlphaFold 2 predicts protein shapes with near-lab accuracy.",why:"Scale itself proved to be a breakthrough, and AI began solving open scientific problems.",tags:["model","compute"]},
+ {e:"g",y:"2022",t:"ChatGPT launches",who:"OpenAI · Stability AI · Midjourney",d:"Released on November 30, ChatGPT reaches an estimated 100 million users in about two months. Image generators like DALL·E 2, Midjourney and Stable Diffusion go public the same year.",why:"Generative AI became a consumer product overnight.",tags:["model"]},
+ {e:"g",y:"2023",t:"The model race",who:"OpenAI GPT-4 · Anthropic Claude · Meta Llama · Google Gemini",d:"GPT-4 handles text and images. Anthropic releases Claude, Meta releases Llama openly, Google launches Gemini, and Microsoft invests billions in OpenAI.",why:"Multimodal models arrived, and AI became a race between tech giants.",tags:["model","compute"]},
+ {e:"g",y:"2024",t:"AI wins Nobel Prizes",who:"John Hopfield & Geoffrey Hinton · Demis Hassabis & John Jumper",d:"The Physics prize honors foundational work on neural networks. The Chemistry prize honors AlphaFold, shared with David Baker. The EU AI Act becomes the first broad AI law.",why:"Science's highest honor recognized AI, as governments began to regulate it.",tags:["people"]},
+ {e:"g",y:"2025",t:"Reasoning models and the compute boom",who:"DeepSeek · NVIDIA · AI labs",d:"China's DeepSeek-R1 matches top reasoning models at a fraction of the reported cost, briefly wiping hundreds of billions off NVIDIA's value. Models that 'think' step by step and agents that take actions spread. NVIDIA later becomes the first $5 trillion company.",why:"Compute demand kept exploding, while open models showed no single company owns the frontier.",tags:["model","compute"]}
+];
+
+const toneVar={warm:"var(--warm)",cold:"var(--cold)",hot:"var(--hot)",neutral:"var(--neutral)"};
+const tagName={winter:"AI winter",compute:"hardware & cloud",model:"landmark model",people:"key figures"};
+const strip=document.getElementById("strip"), ticks=document.getElementById("ticks"), tl=document.getElementById("timeline");
+const S=1943,E=2026,R=E-S;
+ERAS.forEach(er=>{
+  const b=document.createElement("button");
+  b.className="seg "+er.id; b.style.flex=(er.end-er.start)+" 0 0";
+  b.title=er.name+" ("+er.span+")"; b.setAttribute("aria-label",b.title);
+  b.onclick=()=>document.getElementById("era-"+er.id).scrollIntoView({block:"start"});
+  strip.appendChild(b);
+});
+[1950,1970,1990,2010].forEach(y=>{const s=document.createElement("span");s.style.left=((y-S)/R*100)+"%";s.textContent=y;ticks.appendChild(s)});
+
+ERAS.forEach(er=>{
+  const sec=document.createElement("section");
+  sec.className="era"; sec.id="era-"+er.id; sec.dataset.tone=er.tone; sec.style.scrollMarginTop="72px";
+  sec.innerHTML=`<span class="span">${er.span}</span><h2>${er.name}</h2><p>${er.note}</p>`;
+  const ul=document.createElement("ol"); ul.className="events";
+  EV.filter(v=>v.e===er.id).forEach(v=>{
+    const li=document.createElement("li");
+    li.className="ev"+(v.winter?" winter":""); li.dataset.tags=v.tags.join(" ");
+    li.style.setProperty("--tone",toneVar[v.winter?"cold":er.tone]);
+    li.innerHTML=`<div class="yr">${v.y}</div><div class="card"><h3>${v.t}</h3><p class="who">${v.who}</p><p>${v.d}</p><p class="why"><b>Impact</b>${v.why}</p><div class="tags">${v.tags.map(t=>`<span class="tag">${tagName[t]}</span>`).join("")}</div></div>`;
+    ul.appendChild(li);
+  });
+  sec.appendChild(ul); tl.appendChild(sec);
+});
+
+document.querySelectorAll(".chip").forEach(c=>c.addEventListener("click",()=>{
+  const f=c.dataset.f;
+  document.querySelectorAll(".chip").forEach(x=>x.setAttribute("aria-pressed",x===c?"true":"false"));
+  document.querySelectorAll(".ev").forEach(li=>{li.hidden=!(f==="all"||li.dataset.tags.split(" ").includes(f))});
+  document.querySelectorAll(".era").forEach(s=>{s.hidden=![...s.querySelectorAll(".ev")].some(li=>!li.hidden)});
+}));
+</script>
+</body>
+</html>
